@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(deno run:*)",
+      "Bash(timeout 5 deno run:*)",
+      "Bash(timeout 3 deno run:*)"
+    ]
+  }
+}
