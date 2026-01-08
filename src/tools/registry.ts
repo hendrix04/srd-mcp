@@ -1,9 +1,20 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 import type { ClassService } from "../services/class-service.ts";
-import type { RaceService } from "../services/race-service.ts";
+import type { SpeciesService } from "../services/species-service.ts";
 import type { RulesService } from "../services/rules-service.ts";
 import type { SpellService } from "../services/spell-service.ts";
+import type { BackgroundService } from "../services/background-service.ts";
+import type { FeatService } from "../services/feat-service.ts";
+import {
+  validateSpellFilters,
+  validateClassLevel,
+  validateFeatFilters,
+  isValidString,
+} from "../utils/validators.ts";
 
 /**
  * Register all MCP tools with the server
@@ -13,11 +24,20 @@ export function registerAllTools(
   services: {
     spellService: SpellService;
     classService: ClassService;
-    raceService: RaceService;
+    speciesService: SpeciesService;
     rulesService: RulesService;
-  }
+    backgroundService: BackgroundService;
+    featService: FeatService;
+  },
 ) {
-  const { spellService, classService, raceService, rulesService } = services;
+  const {
+    spellService,
+    classService,
+    speciesService,
+    rulesService,
+    backgroundService,
+    featService,
+  } = services;
 
   // List all available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -26,7 +46,8 @@ export function registerAllTools(
         // Spell tools
         {
           name: "list_spells",
-          description: "List spells with optional filters for class, level, and school",
+          description:
+            "List spells with optional filters for class, level, and school",
           inputSchema: {
             type: "object",
             properties: {
@@ -42,7 +63,8 @@ export function registerAllTools(
               },
               school: {
                 type: "string",
-                description: "Filter by magic school (e.g., 'Evocation', 'Abjuration')",
+                description:
+                  "Filter by magic school (e.g., 'Evocation', 'Abjuration')",
               },
             },
           },
@@ -92,7 +114,8 @@ export function registerAllTools(
         },
         {
           name: "get_class_details",
-          description: "Get complete details for a specific class, optionally filtered by character level",
+          description:
+            "Get complete details for a specific class, optionally filtered by character level",
           inputSchema: {
             type: "object",
             properties: {
@@ -102,7 +125,8 @@ export function registerAllTools(
               },
               level: {
                 type: "number",
-                description: "Character level (1-20). If provided, only shows features/progression up to this level",
+                description:
+                  "Character level (1-20). If provided, only shows features/progression up to this level",
                 minimum: 1,
                 maximum: 20,
               },
@@ -110,27 +134,86 @@ export function registerAllTools(
             required: ["className"],
           },
         },
-        // Race tools
+        // Species tools
         {
-          name: "list_races",
-          description: "List all available D&D races/species",
+          name: "list_species",
+          description: "List all available D&D species",
           inputSchema: {
             type: "object",
             properties: {},
           },
         },
         {
-          name: "get_race_details",
-          description: "Get complete details for a specific race/species",
+          name: "get_species_details",
+          description: "Get complete details for a specific species",
           inputSchema: {
             type: "object",
             properties: {
-              raceName: {
+              speciesName: {
                 type: "string",
-                description: "Race name (e.g., 'Human', 'Elf', 'Dwarf')",
+                description: "Species name (e.g., 'Human', 'Elf', 'Dwarf')",
               },
             },
-            required: ["raceName"],
+            required: ["speciesName"],
+          },
+        },
+        // Background tools
+        {
+          name: "list_backgrounds",
+          description: "List all available D&D backgrounds",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "get_background_details",
+          description: "Get detailed information about a specific background",
+          inputSchema: {
+            type: "object",
+            properties: {
+              backgroundName: {
+                type: "string",
+                description:
+                  "Background name (e.g., 'Acolyte', 'Criminal', 'Sage')",
+              },
+            },
+            required: ["backgroundName"],
+          },
+        },
+        // Feat tools
+        {
+          name: "list_feats",
+          description:
+            "List all available D&D feats, optionally filtered by category",
+          inputSchema: {
+            type: "object",
+            properties: {
+              category: {
+                type: "string",
+                description:
+                  "Feat category (e.g., 'Origin', 'General', 'Fighting Style')",
+              },
+              repeatable: {
+                type: "boolean",
+                description: "Filter by whether the feat is repeatable",
+              },
+            },
+          },
+        },
+        {
+          name: "get_feat_details",
+          description: "Get detailed information about a specific feat",
+          inputSchema: {
+            type: "object",
+            properties: {
+              featName: {
+                type: "string",
+                description:
+                  "Feat name (e.g., 'Alert', 'Lucky', 'Savage Attacker')",
+              },
+            },
+            required: ["featName"],
           },
         },
         // Rules tools
@@ -142,7 +225,8 @@ export function registerAllTools(
             properties: {
               topic: {
                 type: "string",
-                description: "Rule topic (e.g., 'grappled', 'attack', 'cover', 'dodge')",
+                description:
+                  "Rule topic (e.g., 'grappled', 'attack', 'cover', 'dodge')",
               },
             },
             required: ["topic"],
@@ -160,7 +244,23 @@ export function registerAllTools(
       switch (name) {
         // Spell tools
         case "list_spells": {
-          const filters = args as { className?: string; level?: number; school?: string };
+          const validation = validateSpellFilters(args);
+          if (!validation.valid) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Error: ${validation.error}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+          const filters = args as {
+            className?: string;
+            level?: number;
+            school?: string;
+          };
           const spells = await spellService.listSpells(filters);
           return {
             content: [
@@ -174,9 +274,14 @@ export function registerAllTools(
 
         case "get_spell_details": {
           const { name: spellName } = args as { name: string };
-          if (!spellName) {
+          if (!spellName || !isValidString(spellName)) {
             return {
-              content: [{ type: "text" as const, text: "Error: spell name is required" }],
+              content: [
+                {
+                  type: "text" as const,
+                  text: "Error: spell name is required and must be a non-empty string",
+                },
+              ],
               isError: true,
             };
           }
@@ -193,7 +298,9 @@ export function registerAllTools(
             };
           }
           return {
-            content: [{ type: "text" as const, text: JSON.stringify(spell, null, 2) }],
+            content: [
+              { type: "text" as const, text: JSON.stringify(spell, null, 2) },
+            ],
           };
         }
 
@@ -201,7 +308,12 @@ export function registerAllTools(
           const { query, limit } = args as { query: string; limit?: number };
           if (!query) {
             return {
-              content: [{ type: "text" as const, text: "Error: search query is required" }],
+              content: [
+                {
+                  type: "text" as const,
+                  text: "Error: search query is required",
+                },
+              ],
               isError: true,
             };
           }
@@ -223,21 +335,37 @@ export function registerAllTools(
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify({ count: classes.length, classes }, null, 2),
+                text: JSON.stringify(
+                  { count: classes.length, classes },
+                  null,
+                  2,
+                ),
               },
             ],
           };
         }
 
         case "get_class_details": {
-          const { className, level } = args as { className: string; level?: number };
-          if (!className) {
+          const validation = validateClassLevel(args);
+          if (!validation.valid) {
             return {
-              content: [{ type: "text" as const, text: "Error: className is required" }],
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Error: ${validation.error}`,
+                },
+              ],
               isError: true,
             };
           }
-          const classData = await classService.getClassDetails(className, level);
+          const { className, level } = args as {
+            className: string;
+            level?: number;
+          };
+          const classData = await classService.getClassDetails(
+            className,
+            level,
+          );
           if (!classData) {
             return {
               content: [
@@ -250,54 +378,186 @@ export function registerAllTools(
             };
           }
           return {
-            content: [{ type: "text" as const, text: JSON.stringify(classData, null, 2) }],
-          };
-        }
-
-        // Race tools
-        case "list_races": {
-          const races = await raceService.listRaces();
-          return {
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify({ count: races.length, races }, null, 2),
+                text: JSON.stringify(classData, null, 2),
               },
             ],
           };
         }
 
-        case "get_race_details": {
-          const { raceName } = args as { raceName: string };
-          if (!raceName) {
-            return {
-              content: [{ type: "text" as const, text: "Error: raceName is required" }],
-              isError: true,
-            };
-          }
-          const race = await raceService.getRaceDetails(raceName);
-          if (!race) {
+        // Species tools
+        case "list_species": {
+          const species = await speciesService.listSpecies();
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify(
+                  { count: species.length, species },
+                  null,
+                  2,
+                ),
+              },
+            ],
+          };
+        }
+
+        case "get_species_details": {
+          const { speciesName } = args as { speciesName: string };
+          if (!speciesName || !isValidString(speciesName)) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: `Race not found: ${raceName}`,
+                  text: "Error: speciesName is required and must be a non-empty string",
+                },
+              ],
+              isError: true,
+            };
+          }
+          const species = await speciesService.getSpeciesDetails(speciesName);
+          if (!species) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Species not found: ${speciesName}`,
                 },
               ],
               isError: true,
             };
           }
           return {
-            content: [{ type: "text" as const, text: JSON.stringify(race, null, 2) }],
+            content: [
+              { type: "text" as const, text: JSON.stringify(species, null, 2) },
+            ],
+          };
+        }
+
+        // Background tools
+        case "list_backgrounds": {
+          const backgrounds = await backgroundService.listBackgrounds();
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify(
+                  { count: backgrounds.length, backgrounds },
+                  null,
+                  2,
+                ),
+              },
+            ],
+          };
+        }
+
+        case "get_background_details": {
+          const { backgroundName } = args as { backgroundName: string };
+          if (!backgroundName || !isValidString(backgroundName)) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "Error: backgroundName is required and must be a non-empty string",
+                },
+              ],
+              isError: true,
+            };
+          }
+          const background =
+            await backgroundService.getBackgroundDetails(backgroundName);
+          if (!background) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Background not found: ${backgroundName}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify(background, null, 2),
+              },
+            ],
+          };
+        }
+
+        // Feat tools
+        case "list_feats": {
+          const validation = validateFeatFilters(args);
+          if (!validation.valid) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Error: ${validation.error}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+          const { category, repeatable } = args as {
+            category?: string;
+            repeatable?: boolean;
+          };
+          const feats = await featService.listFeats({ category, repeatable });
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ count: feats.length, feats }, null, 2),
+              },
+            ],
+          };
+        }
+
+        case "get_feat_details": {
+          const { featName } = args as { featName: string };
+          if (!featName || !isValidString(featName)) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "Error: featName is required and must be a non-empty string",
+                },
+              ],
+              isError: true,
+            };
+          }
+          const feat = await featService.getFeatDetails(featName);
+          if (!feat) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: `Feat not found: ${featName}`,
+                },
+              ],
+              isError: true,
+            };
+          }
+          return {
+            content: [
+              { type: "text" as const, text: JSON.stringify(feat, null, 2) },
+            ],
           };
         }
 
         // Rules tools
         case "get_combat_rule": {
           const { topic } = args as { topic: string };
-          if (!topic) {
+          if (!topic || !isValidString(topic)) {
             return {
-              content: [{ type: "text" as const, text: "Error: topic is required" }],
+              content: [
+                { type: "text" as const, text: "Error: topic is required" },
+              ],
               isError: true,
             };
           }

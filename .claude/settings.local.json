@@ -4,7 +4,9 @@
       "Bash(find:*)",
       "Bash(deno run:*)",
       "Bash(timeout 5 deno run:*)",
-      "Bash(timeout 3 deno run:*)"
+      "Bash(timeout 3 deno run:*)",
+      "SlashCommand(/feature-dev:feature-dev We crashed while updating all of our parsers to V2. Please inspect class-parser-v2.ts and class-parser-v2-summary.md to understand what we were doing. Then I want you to create a plan that will allow us to finish the conversion.)",
+      "SlashCommand(/feature-dev:feature-dev:*)"
     ]
   }
 }

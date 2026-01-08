@@ -1,5 +1,11 @@
 import { DataLoader } from "../data/data-loader.ts";
-import type { ClassData, ClassSummary } from "../types/class-types.ts";
+import type { ClassData } from "../types/class-types.ts";
+
+export interface ClassSummary {
+  name: string;
+  primaryAbility: string;
+  description: string;
+}
 
 /**
  * Service for class-related operations
@@ -19,15 +25,18 @@ export class ClassService {
 
     return classes.map((classData) => ({
       name: classData.name,
-      primaryAbility: classData.primaryAbility,
-      description: `Hit Die: ${classData.hitDie}, Saves: ${classData.savingThrows.join(", ")}`,
+      primaryAbility: classData.coreTraits.primaryAbility,
+      description: `Hit Die: ${classData.coreTraits.hitDie}, Saves: ${classData.coreTraits.savingThrows.join(", ")}`,
     }));
   }
 
   /**
    * Get class details, optionally filtered by level
    */
-  async getClassDetails(className: string, level?: number): Promise<ClassData | null> {
+  async getClassDetails(
+    className: string,
+    level?: number,
+  ): Promise<ClassData | null> {
     const classData = await this.loader.loadClass(className);
 
     if (!classData) {
@@ -46,27 +55,24 @@ export class ClassService {
    * Filter class data to only include information up to a specific level
    */
   private filterByLevel(classData: ClassData, level: number): ClassData {
-    // Filter levels
-    const filteredLevels: ClassData["levels"] = {};
-    for (let i = 1; i <= level; i++) {
-      const levelKey = i.toString();
-      if (classData.levels[levelKey]) {
-        filteredLevels[levelKey] = classData.levels[levelKey];
-      }
-    }
+    // Filter progression (only levels 1 through requested level)
+    const filteredProgression = classData.progression.filter(
+      (p) => p.level <= level,
+    );
 
     // Filter features (only those available at or below the specified level)
-    const filteredFeatures: ClassData["features"] = {};
-    for (const [featureName, feature] of Object.entries(classData.features)) {
-      if (feature.level <= level) {
-        filteredFeatures[featureName] = feature;
-      }
-    }
+    const filteredFeatures = classData.features.filter((f) => f.level <= level);
+
+    // Filter feature levels
+    const filteredFeatureLevels = classData.featureLevels.filter(
+      (l) => l <= level,
+    );
 
     return {
       ...classData,
-      levels: filteredLevels,
+      progression: filteredProgression,
       features: filteredFeatures,
+      featureLevels: filteredFeatureLevels,
     };
   }
 }

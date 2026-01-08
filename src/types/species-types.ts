@@ -2,29 +2,29 @@ import type { SourceReference } from "./common-types.ts";
 
 export type Size = "Tiny" | "Small" | "Medium" | "Large" | "Huge" | "Gargantuan";
 
-export interface RaceTrait {
+export interface SpeciesTrait {
   name: string;
   description: string;
 }
 
-export interface Subrace {
+export interface Subspecies {
   name: string;
-  additionalTraits: RaceTrait[];
+  additionalTraits: SpeciesTrait[];
 }
 
-export interface RaceData {
+export interface SpeciesData {
   name: string;
   size: Size;
   speed: number;
-  traits: RaceTrait[];
+  traits: SpeciesTrait[];
   languages?: string[];
-  subraces?: {
-    [subraceName: string]: Subrace;
+  subspecies?: {
+    [subspeciesName: string]: Subspecies;
   };
   source: SourceReference;
 }
 
-export interface RaceSummary {
+export interface SpeciesSummary {
   name: string;
   size: Size;
   speed: number;

@@ -4,9 +4,11 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { DataLoader } from "./data/data-loader.ts";
 import { ClassService } from "./services/class-service.ts";
-import { RaceService } from "./services/race-service.ts";
+import { SpeciesService } from "./services/species-service.ts";
 import { RulesService } from "./services/rules-service.ts";
 import { SpellService } from "./services/spell-service.ts";
+import { BackgroundService } from "./services/background-service.ts";
+import { FeatService } from "./services/feat-service.ts";
 import { registerAllTools } from "./tools/registry.ts";
 
 /**
@@ -26,8 +28,10 @@ async function main() {
   // Initialize services
   const spellService = new SpellService(dataLoader);
   const classService = new ClassService(dataLoader);
-  const raceService = new RaceService(dataLoader);
+  const speciesService = new SpeciesService(dataLoader);
   const rulesService = new RulesService(dataLoader);
+  const backgroundService = new BackgroundService(dataLoader);
+  const featService = new FeatService(dataLoader);
 
   // Create MCP server
   const server = new Server(
@@ -39,15 +43,17 @@ async function main() {
       capabilities: {
         tools: {},
       },
-    }
+    },
   );
 
   // Register all tools
   registerAllTools(server, {
     spellService,
     classService,
-    raceService,
+    speciesService,
     rulesService,
+    backgroundService,
+    featService,
   });
 
   console.error("Tools registered successfully");

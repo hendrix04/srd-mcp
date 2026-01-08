@@ -19,38 +19,64 @@ export class RulesService {
     const normalizedTopic = topic.toLowerCase().trim();
 
     // Search in actions
-    if (rules.actions) {
-      for (const [action, description] of Object.entries(rules.actions)) {
-        if (action.toLowerCase() === normalizedTopic) {
-          return `**${action}**: ${description}`;
+    if (rules.actions && Array.isArray(rules.actions)) {
+      for (const action of rules.actions) {
+        if (action.name.toLowerCase() === normalizedTopic) {
+          return `**${action.name}**: ${action.description}`;
         }
       }
     }
 
     // Search in conditions
-    if (rules.conditions) {
-      for (const [condition, description] of Object.entries(rules.conditions)) {
-        if (condition.toLowerCase() === normalizedTopic) {
-          return `**${condition}**: ${description}`;
+    if (rules.conditions && Array.isArray(rules.conditions)) {
+      for (const condition of rules.conditions) {
+        if (condition.name.toLowerCase() === normalizedTopic) {
+          return `**${condition.name}**: ${condition.description}`;
         }
       }
     }
 
     // Search in cover
-    if (rules.cover) {
-      for (const [coverType, description] of Object.entries(rules.cover)) {
-        if (coverType.toLowerCase().includes(normalizedTopic)) {
-          return `**${coverType}**: ${description}`;
+    if (rules.cover && Array.isArray(rules.cover)) {
+      for (const coverType of rules.cover) {
+        if (coverType.name.toLowerCase().includes(normalizedTopic)) {
+          return `**${coverType.name}**: ${coverType.description}`;
         }
       }
     }
 
-    // Search all categories
+    // Search in alignments
+    if (rules.alignments && Array.isArray(rules.alignments)) {
+      for (const alignment of rules.alignments) {
+        if (
+          alignment.name.toLowerCase() === normalizedTopic ||
+          alignment.code.toLowerCase() === normalizedTopic
+        ) {
+          return `**${alignment.name}** (${alignment.code}): ${alignment.description}`;
+        }
+      }
+    }
+
+    // Search in ability scores
+    if (rules.abilityScores && Array.isArray(rules.abilityScores)) {
+      for (const ability of rules.abilityScores) {
+        if (ability.name.toLowerCase() === normalizedTopic) {
+          return `**${ability.name}**: ${ability.description}`;
+        }
+      }
+    }
+
+    // Search all array-based categories
     for (const [category, items] of Object.entries(rules)) {
-      if (typeof items === "object") {
-        for (const [key, value] of Object.entries(items)) {
-          if (key.toLowerCase().includes(normalizedTopic)) {
-            return `**${key}** (${category}): ${value}`;
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (
+            item.name &&
+            typeof item.name === "string" &&
+            item.name.toLowerCase().includes(normalizedTopic)
+          ) {
+            const description = item.description || JSON.stringify(item);
+            return `**${item.name}** (${category}): ${description}`;
           }
         }
       }
