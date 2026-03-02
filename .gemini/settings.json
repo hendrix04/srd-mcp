@@ -3,7 +3,7 @@
     "enableAgents": true
   },
   "tools": {
-    "discoveryCommand": "node --experimental-strip-types \"C:/Users/hendr/Documents/Code/srd-mcp/agent/discovery.ts\"",
-    "callCommand": "node --experimental-strip-types \"C:/Users/hendr/Documents/Code/srd-mcp/agent/tool-caller.ts\""
+    "discoveryCommand": "node --experimental-strip-types /home/hendrix/projects/srd-mcp/agent/discovery.ts",
+    "callCommand": "node --experimental-strip-types /home/hendrix/projects/srd-mcp/agent/tool-caller.ts"
   }
 }
