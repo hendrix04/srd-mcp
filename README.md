@@ -27,6 +27,20 @@ deno task preprocess
 ```
 
 3. Ensure the project is trusted by Gemini CLI to allow local tool execution.
+4. Run the local initialization script to secure absolute pathing for tools:
+   ```bash
+   npm run init
+   ```
+
+### Installing as an Extension in Other Projects
+
+You can easily mount this SRD sub-agent into another Gemini CLI managed project. Navigate to this repository and run:
+
+```bash
+npm run install:cli -- ../path/to/target/project
+```
+
+This will automatically configure the target project to execute the sub-agent tools from this repository's absolute path.
 
 ## Usage
 

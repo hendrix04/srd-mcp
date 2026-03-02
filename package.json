@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "type": "module",
   "description": "D&D 5e SRD Gemini CLI sub-agent",
+  "scripts": {
+    "init": "node scripts/init-local.js",
+    "install:cli": "node scripts/install-to.js"
+  },
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^22.0.0"
