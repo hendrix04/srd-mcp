@@ -1,4 +1,5 @@
 import { DataLoader } from "../data/data-loader.ts";
+import { fuzzyMatch } from "../utils/fuzzy-search.ts";
 import type { CombatRules } from "../types/rule-types.ts";
 
 /**
@@ -18,71 +19,66 @@ export class RulesService {
     const rules = await this.loader.loadCombatRules();
     const normalizedTopic = topic.toLowerCase().trim();
 
-    // Search in actions
-    if (rules.actions && Array.isArray(rules.actions)) {
-      for (const action of rules.actions) {
-        if (action.name.toLowerCase() === normalizedTopic) {
-          return `**${action.name}**: ${action.description}`;
-        }
-      }
-    }
+    let bestMatch: { score: number; text: string | null } = { score: 0, text: null };
 
-    // Search in conditions
-    if (rules.conditions && Array.isArray(rules.conditions)) {
-      for (const condition of rules.conditions) {
-        if (condition.name.toLowerCase() === normalizedTopic) {
-          return `**${condition.name}**: ${condition.description}`;
-        }
-      }
-    }
-
-    // Search in cover
-    if (rules.cover && Array.isArray(rules.cover)) {
-      for (const coverType of rules.cover) {
-        if (coverType.name.toLowerCase().includes(normalizedTopic)) {
-          return `**${coverType.name}**: ${coverType.description}`;
-        }
-      }
-    }
-
-    // Search in alignments
-    if (rules.alignments && Array.isArray(rules.alignments)) {
-      for (const alignment of rules.alignments) {
-        if (
-          alignment.name.toLowerCase() === normalizedTopic ||
-          alignment.code.toLowerCase() === normalizedTopic
-        ) {
-          return `**${alignment.name}** (${alignment.code}): ${alignment.description}`;
-        }
-      }
-    }
-
-    // Search in ability scores
-    if (rules.abilityScores && Array.isArray(rules.abilityScores)) {
-      for (const ability of rules.abilityScores) {
-        if (ability.name.toLowerCase() === normalizedTopic) {
-          return `**${ability.name}**: ${ability.description}`;
-        }
-      }
-    }
-
-    // Search all array-based categories
     for (const [category, items] of Object.entries(rules)) {
-      if (Array.isArray(items)) {
-        for (const item of items) {
-          if (
-            item.name &&
-            typeof item.name === "string" &&
-            item.name.toLowerCase().includes(normalizedTopic)
-          ) {
-            const description = item.description || JSON.stringify(item);
-            return `**${item.name}** (${category}): ${description}`;
-          }
+      if (!Array.isArray(items)) continue;
+
+      for (const item of items) {
+        const name = (item.name || item.className) as string | undefined;
+        if (!name) continue;
+
+        const description = this.formatDescription(item, category);
+        const score = fuzzyMatch(normalizedTopic, name);
+
+        // Exact match: return immediately
+        if (name.toLowerCase() === normalizedTopic) {
+          return `**${name}**${this.getCategoryLabel(category)}: ${description}`;
+        }
+
+        // Fuzzy match: track best
+        if (score > bestMatch.score && score >= 0.7) {
+          bestMatch = {
+            score,
+            text: `**${name}**${this.getCategoryLabel(category)}: ${description}`,
+          };
         }
       }
     }
 
-    return null;
+    return bestMatch.text;
+  }
+
+  /**
+   * Format the description based on item properties
+   */
+  private formatDescription(item: any, category: string): string {
+    if (item.description) return item.description;
+    if (category === "classOverview") {
+      return `Likes: ${item.likes}, Primary Ability: ${item.primaryAbility}, Complexity: ${item.complexity}`;
+    }
+    if (category === "currency") {
+      return `${item.abbreviation} (${item.copperValue} CP)`;
+    }
+    if (category === "alignments") {
+      return `(${item.code}) ${item.description || ""}`;
+    }
+    return JSON.stringify(item);
+  }
+
+  /**
+   * Get a readable category label
+   */
+  private getCategoryLabel(category: string): string {
+    const labels: Record<string, string> = {
+      classOverview: " (Class Overview)",
+      abilityScores: " (Ability Score)",
+      standardLanguages: " (Language)",
+      rareLanguages: " (Rare Language)",
+      conditions: " (Condition)",
+      actions: " (Action)",
+    };
+    return labels[category] || "";
   }
 
   /**
