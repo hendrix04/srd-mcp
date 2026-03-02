@@ -33,7 +33,7 @@ import type {
   HigherLevelStartingEquipment,
   TierOfPlay,
   Trinket,
-} from "../../src/types/character-rules-types.ts";
+} from "../../agent/types/character-rules-types.ts";
 import { extractTableData } from "../utils/parser-utils.ts";
 
 // =============================================================================

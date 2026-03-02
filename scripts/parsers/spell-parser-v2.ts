@@ -14,8 +14,8 @@ import type {
   SpellComponents,
   SpellsByClass,
   SpellsByName,
-} from "../../src/types/spell-types.ts";
-import type { MagicSchool } from "../../src/types/common-types.ts";
+} from "../../agent/types/spell-types.ts";
+import type { MagicSchool } from "../../agent/types/common-types.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
 
 // Spell files in normalized directory

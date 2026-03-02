@@ -1,4 +1,4 @@
-import type { ClassData } from "../../src/types/class-types.ts";
+import type { ClassData } from "../../agent/types/class-types.ts";
 import {
   extractSections,
   parseMarkdownTable,

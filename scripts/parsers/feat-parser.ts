@@ -6,7 +6,7 @@
 
 import { marked } from "marked";
 import type { Token, Tokens } from "marked";
-import type { FeatData, FeatCategory } from "../../src/types/feat-types.ts";
+import type { FeatData, FeatCategory } from "../../agent/types/feat-types.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
 import { extractTokensUntilHeading } from "../utils/parser-utils.ts";
 

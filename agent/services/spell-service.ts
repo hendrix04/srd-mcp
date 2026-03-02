@@ -1,4 +1,4 @@
-import { DataLoader } from "../data/data-loader.ts";
+import { DataLoader } from "../utils/data-loader.ts";
 import type { Spell, SpellFilters, SpellSearchResult } from "../types/spell-types.ts";
 import { fuzzyMatch, normalizeClassName, normalizeSchool } from "../utils/fuzzy-search.ts";
 

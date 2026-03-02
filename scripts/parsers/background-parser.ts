@@ -6,7 +6,7 @@
 
 import { marked } from "marked";
 import type { Token, Tokens } from "marked";
-import type { BackgroundData } from "../../src/types/background-types.ts";
+import type { BackgroundData } from "../../agent/types/background-types.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
 import { extractPlainText } from "../utils/parser-utils.ts";
 

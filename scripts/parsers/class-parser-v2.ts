@@ -14,7 +14,7 @@ import type {
   EquipmentOption,
   MulticlassInfo,
   SubclassInfo,
-} from "../../src/types/class-types.ts";
+} from "../../agent/types/class-types.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
 
 const classNames = [

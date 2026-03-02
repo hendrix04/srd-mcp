@@ -1,4 +1,4 @@
-import { DataLoader } from "../data/data-loader.ts";
+import { DataLoader } from "../utils/data-loader.ts";
 import { fuzzyMatch } from "../utils/fuzzy-search.ts";
 import type { CombatRules } from "../types/rule-types.ts";
 

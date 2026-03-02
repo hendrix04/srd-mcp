@@ -7,7 +7,7 @@
 
 import { marked } from "marked";
 import type { Token, Tokens } from "marked";
-import type { ClassData } from "../../src/types/class-types.ts";
+import type { ClassData } from "../../agent/types/class-types.ts";
 
 /**
  * Parse all classes from normalized SRD markdown files

@@ -1,0 +1,9 @@
+{
+  "experimental": {
+    "enableAgents": true
+  },
+  "tools": {
+    "discoveryCommand": "node --experimental-strip-types /home/hendrix/projects/srd-mcp/agent/discovery.ts",
+    "callCommand": "node --experimental-strip-types /home/hendrix/projects/srd-mcp/agent/tool-caller.ts"
+  }
+}

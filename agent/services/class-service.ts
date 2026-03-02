@@ -1,4 +1,4 @@
-import { DataLoader } from "../data/data-loader.ts";
+import { DataLoader } from "../utils/data-loader.ts";
 import type { ClassData } from "../types/class-types.ts";
 
 export interface ClassSummary {

@@ -1,11 +1,16 @@
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { readFile, readdir } from "node:fs/promises";
-import type { SpellsByName, SpellsByClass } from "../../src/types/spell-types";
-import type { ClassData } from "../../src/types/class-types";
-import type { SpeciesData } from "../../src/types/species-types";
-import type { BackgroundData } from "../../src/types/background-types";
-import type { FeatData } from "../../src/types/feat-types";
-import type { CombatRules } from "../../src/types/rule-types";
+import { fileURLToPath } from "node:url";
+import type { SpellsByName, SpellsByClass } from "../types/spell-types.ts";
+import type { ClassData } from "../types/class-types.ts";
+import type { SpeciesData } from "../types/species-types.ts";
+import type { BackgroundData } from "../types/background-types.ts";
+import type { FeatData } from "../types/feat-types.ts";
+import type { CombatRules } from "../types/rule-types.ts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PROJECT_ROOT = join(__dirname, "../../");
 
 /**
  * Centrally managed data loader with in-memory caching and Singleton pattern.
@@ -22,7 +27,7 @@ export class DataLoader {
 
   public static getInstance(basePath?: string): DataLoader {
     if (!DataLoader.instance) {
-      DataLoader.instance = new DataLoader(basePath || process.cwd());
+      DataLoader.instance = new DataLoader(basePath || PROJECT_ROOT);
     }
     return DataLoader.instance;
   }

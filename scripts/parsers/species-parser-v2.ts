@@ -7,7 +7,7 @@
 
 import { marked } from "marked";
 import type { Token, Tokens } from "marked";
-import type { RaceData, RaceTrait } from "../../src/types/race-types.ts";
+import type { RaceData, RaceTrait } from "../../agent/types/race-types.ts";
 import { ensureDir } from "https://deno.land/std@0.208.0/fs/mod.ts";
 import {
   extractTokensUntilHeading,

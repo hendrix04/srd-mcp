@@ -1,0 +1,10 @@
+{
+  "name": "srd-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "D&D 5e SRD Gemini CLI sub-agent",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
